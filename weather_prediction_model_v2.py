@@ -1,3 +1,6 @@
+"""
+Alternative weather prediction model with better import compatibility
+"""
 import numpy as np
 import pandas as pd
 import os
@@ -8,10 +11,10 @@ from sklearn.metrics import confusion_matrix, classification_report
 import warnings
 warnings.filterwarnings("ignore")
 
-# TensorFlow imports with better VS Code compatibility
+# Use more compatible TensorFlow imports
 try:
     import tensorflow as tf
-    # Use direct tf.keras references that VS Code recognizes better
+    # Use the newer import style that VS Code recognizes better
     Sequential = tf.keras.models.Sequential
     load_model = tf.keras.models.load_model
     GRU = tf.keras.layers.GRU
@@ -20,11 +23,15 @@ try:
     EarlyStopping = tf.keras.callbacks.EarlyStopping
     ReduceLROnPlateau = tf.keras.callbacks.ReduceLROnPlateau
     TENSORFLOW_AVAILABLE = True
+    print(f"TensorFlow {tf.__version__} loaded successfully")
 except ImportError as e:
-    print(f"TensorFlow/Keras not available: {e}")
+    print(f"TensorFlow not available: {e}")
     TENSORFLOW_AVAILABLE = False
 
-class WeatherPredictionModel:
+class WeatherPredictionModelV2:
+    """
+    Enhanced version with better import compatibility
+    """
     def __init__(self, model_path='Petrichor_Model.keras', scaler_path='feature_scaler.pkl'):
         if not TENSORFLOW_AVAILABLE:
             raise ImportError("TensorFlow is not available. Please install TensorFlow to use this class.")
@@ -38,14 +45,10 @@ class WeatherPredictionModel:
         
     def prepare_data(self, df):
         """Prepare data for training"""
-        # Separate features and target
         feature_columns = ['Rainf', 'Humidity', 'Air Temperature', 'Wind_N', 'Wind_E']
         X = df[feature_columns].copy()
         y = df['Weather'].copy()
-        
-        # Handle missing values
         X = X.fillna(0)
-        
         return X, y
     
     def train_model(self, df, test_size=0.2, epochs=100):
@@ -74,12 +77,12 @@ class WeatherPredictionModel:
         y_train_encoded = y_train_encoded.astype(np.float32)
         y_test_encoded = y_test_encoded.astype(np.float32)
         
-        # Reshape for GRU (add timestep dimension)
+        # Reshape for GRU
         X_train_reshaped = X_train_scaled.reshape((X_train_scaled.shape[0], 1, X_train_scaled.shape[1]))
         X_test_reshaped = X_test_scaled.reshape((X_test_scaled.shape[0], 1, X_test_scaled.shape[1]))
         
         print("Building model...")
-        # Build model
+        # Build model using tf.keras style
         timesteps = 1
         features = X_train_reshaped.shape[2]
         
@@ -157,16 +160,7 @@ class WeatherPredictionModel:
             raise FileNotFoundError(f"Scaler file not found: {self.scaler_path}")
     
     def predict_weather(self, weather_data):
-        """
-        Predict weather classification
-        
-        Args:
-            weather_data: dict with keys ['Rainf', 'Humidity', 'Air Temperature', 'Wind_N', 'Wind_E']
-                         or DataFrame with these columns
-        
-        Returns:
-            dict: prediction results with probabilities
-        """
+        """Predict weather classification"""
         if self.model is None or self.scaler is None:
             self.load_model()
         
@@ -226,22 +220,8 @@ class WeatherPredictionModel:
             "output_shape": str(self.model.output_shape),
             "total_params": self.model.count_params(),
             "available_classes": self.class_labels,
-            "tensorflow_version": tf.__version__ if TENSORFLOW_AVAILABLE else "Not available"
+            "tensorflow_version": tf.__version__
         }
 
-    @staticmethod
-    def check_dependencies():
-        """Check if all required dependencies are available"""
-        status = {
-            "tensorflow": TENSORFLOW_AVAILABLE,
-            "sklearn": True,  # Already imported
-            "pandas": True,   # Already imported
-            "numpy": True,    # Already imported
-            "joblib": True    # Already imported
-        }
-        
-        if TENSORFLOW_AVAILABLE:
-            status["tensorflow_version"] = tf.__version__
-            status["keras_version"] = tf.keras.__version__
-        
-        return status
+# For backward compatibility, alias the new class
+WeatherPredictionModel = WeatherPredictionModelV2
