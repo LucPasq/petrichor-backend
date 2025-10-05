@@ -12,3 +12,5 @@ geopy==2.4.1
 scikit-learn==1.3.2
 tensorflow==2.15.0
 joblib==1.3.2
+
+//Use python petrichor_backend.py to start backend.
